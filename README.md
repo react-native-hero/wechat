@@ -126,7 +126,7 @@ package your-package-name.wechat
 
 import android.app.Activity
 import android.os.Bundle
-import com.github.musicode.wechat.RNTWechatModule
+import com.github.reactnativehero.wechat.RNTWechatModule
 
 class NotifyActivity : Activity() {
 
