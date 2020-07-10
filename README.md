@@ -179,8 +179,8 @@ override fun onCreate() {
 ## Usage
 
 ```js
-
 import {
+  SCOPE,
   SCENE,
   MP_TYPE,
   sendAuthRequest,
@@ -191,11 +191,11 @@ import {
   shareVideo,
   sharePage,
   shareMiniProgram,
-} from 'react-native-pure-wechat'
+} from '@react-native-hero/wechat'
 
 // 微信登录
 sendAuthRequest({
-  scope: 'snsapi_userinfo'
+  scope: SCOPE.USER_INFO,
 })
 .then(response => {
   response.data.code
@@ -294,5 +294,4 @@ shareMiniProgram({
   description: '',
   scene: SCENE.SESSION,
 })
-
 ```

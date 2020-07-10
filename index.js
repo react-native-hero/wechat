@@ -65,6 +65,10 @@ function shareMessage(promise) {
   })
 }
 
+export const SCOPE = {
+  USER_INFO: 'snsapi_userinfo',
+}
+
 export const SCENE = {
   // 分享给朋友
   SESSION: 0,
