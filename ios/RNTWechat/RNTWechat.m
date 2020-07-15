@@ -3,11 +3,13 @@
 #import <React/RCTConvert.h>
 #import "RNTWechat.h"
 
-RNTWechat *wechatInstance;
-
-typeof(void (^)(NSString*, void (^)(UIImage*))) wechatLoadImage;
-
 @implementation RNTWechat
+
+static RNTWechat *wechatInstance = nil;
+
+static typeof(void (^)(NSString*, void (^)(UIImage*))) wechatLoadImage;
+
+static NSString *ERROR_CODE_IMAGE_NOT_FOUND = @"1";
 
 RCT_EXPORT_MODULE(RNTWechat);
 
@@ -55,6 +57,12 @@ options:(NSDictionary<NSString*, id> *)options {
       @"auth_response",
       @"message_response",
   ];
+}
+
+- (NSDictionary *)constantsToExport {
+    return @{
+        @"ERROR_CODE_IMAGE_NOT_FOUND": ERROR_CODE_IMAGE_NOT_FOUND,
+    };
 }
 
 - (void)onReq:(BaseReq *)req {
@@ -152,10 +160,13 @@ RCT_EXPORT_METHOD(pay:(NSDictionary*)options
                   reject:(RCTPromiseRejectBlock)reject) {
     
     PayReq *req = [[PayReq alloc] init];
+    
+    NSNumber *timeStamp = @([[RCTConvert NSString:options[@"timeStamp"]] integerValue]);
+    
     req.partnerId = [RCTConvert NSString:options[@"partnerId"]];
     req.prepayId = [RCTConvert NSString:options[@"prepayId"]];
     req.nonceStr = [RCTConvert NSString:options[@"nonceStr"]];
-    req.timeStamp = [RCTConvert NSString:options[@"timeStamp"]].longLongValue;
+    req.timeStamp = timeStamp.unsignedIntValue;
     req.package = [RCTConvert NSString:options[@"package"]];
     req.sign = [RCTConvert NSString:options[@"sign"]];
     
@@ -209,7 +220,7 @@ RCT_EXPORT_METHOD(shareImage:(NSDictionary*)options
     typeof(void(^)(UIImage *image)) sendShareReq = ^(UIImage *image){
 
         if (image == nil) {
-            reject(@"1", @"image is not found.", nil);
+            reject(ERROR_CODE_IMAGE_NOT_FOUND, @"image is not found.", nil);
             return;
         }
 
@@ -249,7 +260,7 @@ RCT_EXPORT_METHOD(shareAudio:(NSDictionary*)options
     typeof(void(^)(UIImage *image)) sendShareReq = ^(UIImage *image){
 
         if (image == nil) {
-            reject(@"1", @"thumbnail is not found.", nil);
+            reject(ERROR_CODE_IMAGE_NOT_FOUND, @"thumbnail is not found.", nil);
             return;
         }
 
@@ -293,7 +304,7 @@ RCT_EXPORT_METHOD(shareVideo:(NSDictionary*)options
     typeof(void(^)(UIImage *image)) sendShareReq = ^(UIImage *image){
 
         if (image == nil) {
-            reject(@"1", @"thumbnail is not found.", nil);
+            reject(ERROR_CODE_IMAGE_NOT_FOUND, @"thumbnail is not found.", nil);
             return;
         }
 
@@ -335,7 +346,7 @@ RCT_EXPORT_METHOD(sharePage:(NSDictionary*)options
     typeof(void(^)(UIImage *image)) sendShareReq = ^(UIImage *image){
 
         if (image == nil) {
-            reject(@"1", @"thumbnail is not found.", nil);
+            reject(ERROR_CODE_IMAGE_NOT_FOUND, @"thumbnail is not found.", nil);
             return;
         }
 
@@ -376,7 +387,7 @@ RCT_EXPORT_METHOD(shareMiniProgram:(NSDictionary*)options
     typeof(void(^)(UIImage *image)) sendShareReq = ^(UIImage *image){
 
         if (image == nil) {
-            reject(@"1", @"thumbnail is not found.", nil);
+            reject(ERROR_CODE_IMAGE_NOT_FOUND, @"thumbnail is not found.", nil);
             return;
         }
 

@@ -26,7 +26,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
 
     companion object {
 
-        private lateinit var api: IWXAPI
+        private lateinit var wechatApi: IWXAPI
 
         private var wechatAppId = ""
 
@@ -34,21 +34,24 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
 
         private var wechatLoadImage: ((String, (Bitmap?) -> Unit) -> Unit)? = null
 
+        private const val ERROR_CODE_IMAGE_NOT_FOUND = "1"
+        private const val ERROR_CODE_IMAGE_RECYCLED = "2"
+
         fun init(app: Application, appId: String, loadImage: (String, (Bitmap?) -> Unit) -> Unit) {
 
             wechatLoadImage = loadImage
 
             // 通过 WXAPIFactory 工厂，获取 IWXAPI 的实例
-            api = WXAPIFactory.createWXAPI(app, appId, true)
+            wechatApi = WXAPIFactory.createWXAPI(app, appId, true)
 
             // 将应用的 appId 注册到微信
             wechatAppId = appId
-            api.registerApp(appId)
+            wechatApi.registerApp(appId)
 
             // 建议动态监听微信启动广播进行注册到微信
             app.registerReceiver(object : BroadcastReceiver() {
                 override fun onReceive(context: Context?, intent: Intent?) {
-                    api.registerApp(appId)
+                    wechatApi.registerApp(appId)
                 }
             }, IntentFilter(ConstantsAPI.ACTION_REFRESH_WXAPP))
 
@@ -56,7 +59,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
 
         fun handleIntent(intent: Intent) {
             wechatModule?.let {
-                api.handleIntent(intent, it)
+                wechatApi.handleIntent(intent, it)
             }
         }
 
@@ -64,6 +67,17 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
 
     override fun getName(): String {
         return "RNTWechat"
+    }
+
+    override fun getConstants(): Map<String, Any>? {
+
+        val constants: MutableMap<String, Any> = HashMap()
+
+        constants["ERROR_CODE_IMAGE_NOT_FOUND"] = ERROR_CODE_IMAGE_NOT_FOUND
+        constants["ERROR_CODE_IMAGE_RECYCLED"] = ERROR_CODE_IMAGE_RECYCLED
+
+        return constants
+
     }
 
     override fun onCatalystInstanceDestroy() {
@@ -80,7 +94,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
     fun isInstalled(promise: Promise) {
 
         val map = Arguments.createMap()
-        map.putBoolean("installed", api.isWXAppInstalled)
+        map.putBoolean("installed", wechatApi.isWXAppInstalled)
 
         promise.resolve(map)
 
@@ -90,7 +104,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
     fun isSupportOpenApi(promise: Promise) {
 
         val map = Arguments.createMap()
-        map.putBoolean("supported", api.wxAppSupportAPI >= Build.OPENID_SUPPORTED_SDK_INT)
+        map.putBoolean("supported", wechatApi.wxAppSupportAPI >= Build.OPENID_SUPPORTED_SDK_INT)
 
         promise.resolve(map)
 
@@ -100,7 +114,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
     fun open(promise: Promise) {
 
         val map = Arguments.createMap()
-        map.putBoolean("success", api.openWXApp())
+        map.putBoolean("success", wechatApi.openWXApp())
 
         promise.resolve(map)
 
@@ -119,7 +133,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         req.sign = options.getString("sign")
 
         val map = Arguments.createMap()
-        map.putBoolean("success", api.sendReq(req))
+        map.putBoolean("success", wechatApi.sendReq(req))
 
         promise.resolve(map)
 
@@ -136,7 +150,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         }
 
         val map = Arguments.createMap()
-        map.putBoolean("success", api.sendReq(req))
+        map.putBoolean("success", wechatApi.sendReq(req))
 
         promise.resolve(map)
 
@@ -162,7 +176,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         }
 
         val map = Arguments.createMap()
-        map.putBoolean("success", api.sendReq(req))
+        map.putBoolean("success", wechatApi.sendReq(req))
 
         promise.resolve(map)
 
@@ -174,12 +188,12 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         fun sendShareReq(bitmap: Bitmap?) {
 
             if (bitmap == null) {
-                promise.reject("1", "image is not found.")
+                promise.reject(ERROR_CODE_IMAGE_NOT_FOUND, "image is not found.")
                 return
             }
 
             if (bitmap.isRecycled) {
-                promise.reject("2", "image bitmap is recycled.")
+                promise.reject(ERROR_CODE_IMAGE_RECYCLED, "image is recycled.")
                 return
             }
 
@@ -199,7 +213,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
             }
 
             val map = Arguments.createMap()
-            map.putBoolean("success", api.sendReq(req))
+            map.putBoolean("success", wechatApi.sendReq(req))
 
             promise.resolve(map)
 
@@ -219,12 +233,12 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         fun sendShareReq(bitmap: Bitmap?) {
 
             if (bitmap == null) {
-                promise.reject("1", "thumbnail is not found.")
+                promise.reject(ERROR_CODE_IMAGE_NOT_FOUND, "thumbnail is not found.")
                 return
             }
 
             if (bitmap.isRecycled) {
-                promise.reject("2", "thumbnail bitmap is recycled.")
+                promise.reject(ERROR_CODE_IMAGE_RECYCLED, "thumbnail is recycled.")
                 return
             }
 
@@ -250,7 +264,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
             }
 
             val map = Arguments.createMap()
-            map.putBoolean("success", api.sendReq(req))
+            map.putBoolean("success", wechatApi.sendReq(req))
 
             promise.resolve(map)
 
@@ -270,12 +284,12 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         fun sendShareReq(bitmap: Bitmap?) {
 
             if (bitmap == null) {
-                promise.reject("1", "thumbnail is not found.")
+                promise.reject(ERROR_CODE_IMAGE_NOT_FOUND, "thumbnail is not found.")
                 return
             }
 
             if (bitmap.isRecycled) {
-                promise.reject("2", "thumbnail bitmap is recycled.")
+                promise.reject(ERROR_CODE_IMAGE_RECYCLED, "thumbnail is recycled.")
                 return
             }
 
@@ -299,7 +313,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
             }
 
             val map = Arguments.createMap()
-            map.putBoolean("success", api.sendReq(req))
+            map.putBoolean("success", wechatApi.sendReq(req))
 
             promise.resolve(map)
 
@@ -319,12 +333,12 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         fun sendShareReq(bitmap: Bitmap?) {
 
             if (bitmap == null) {
-                promise.reject("1", "thumbnail is not found.")
+                promise.reject(ERROR_CODE_IMAGE_NOT_FOUND, "thumbnail is not found.")
                 return
             }
 
             if (bitmap.isRecycled) {
-                promise.reject("2", "thumbnail bitmap is recycled.")
+                promise.reject(ERROR_CODE_IMAGE_RECYCLED, "thumbnail is recycled.")
                 return
             }
 
@@ -347,7 +361,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
             }
 
             val map = Arguments.createMap()
-            map.putBoolean("success", api.sendReq(req))
+            map.putBoolean("success", wechatApi.sendReq(req))
 
             promise.resolve(map)
 
@@ -367,12 +381,12 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         fun sendShareReq(bitmap: Bitmap?) {
 
             if (bitmap == null) {
-                promise.reject("1", "thumbnail is not found.")
+                promise.reject(ERROR_CODE_IMAGE_NOT_FOUND, "thumbnail is not found.")
                 return
             }
 
             if (bitmap.isRecycled) {
-                promise.reject("2", "thumbnail bitmap is recycled.")
+                promise.reject(ERROR_CODE_IMAGE_RECYCLED, "thumbnail is recycled.")
                 return
             }
 
@@ -400,7 +414,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
             }
 
             val map = Arguments.createMap()
-            map.putBoolean("success", api.sendReq(req))
+            map.putBoolean("success", wechatApi.sendReq(req))
 
             promise.resolve(map)
 

@@ -1,5 +1,5 @@
 
-import { NativeEventEmitter, NativeModules } from 'react-native'
+import { NativeEventEmitter, NativeModules, Platform } from 'react-native'
 
 const { RNTWechat } = NativeModules
 
@@ -64,6 +64,16 @@ function shareMessage(promise) {
     })
   })
 }
+
+export const CODE = Platform.select({
+  ios: {
+    IMAGE_NOT_FOUND: RNTWechat.ERROR_CODE_IMAGE_NOT_FOUND,
+  },
+  android: {
+    IMAGE_NOT_FOUND: RNTWechat.ERROR_CODE_IMAGE_NOT_FOUND,
+    IMAGE_RECYCLED: RNTWechat.ERROR_CODE_IMAGE_RECYCLED,
+  }
+})
 
 export const SCOPE = {
   USER_INFO: 'snsapi_userinfo',
