@@ -5,30 +5,30 @@
 
 @implementation RNTWechat
 
-static RNTWechat *wechatInstance = nil;
+static RNTWechat *WECHAT_INSTANCE = nil;
 
-static typeof(void (^)(NSString*, void (^)(UIImage*))) wechatLoadImage;
+static typeof(void (^)(NSString*, void (^)(UIImage*))) WECHAT_LOAD_IMAGE;
 
 static NSString *ERROR_CODE_IMAGE_NOT_FOUND = @"1";
 
 RCT_EXPORT_MODULE(RNTWechat);
 
 + (void)init:(NSString *)appId universalLink:(NSString *)universalLink loadImage:(void (^)(NSString*, void (^)(UIImage*)))loadImage {
-    wechatLoadImage = loadImage;
+    WECHAT_LOAD_IMAGE = loadImage;
     [WXApi registerApp:appId universalLink:universalLink];
 }
 
 + (BOOL)handleOpenURL:(UIApplication *)application openURL:(NSURL *)url
 options:(NSDictionary<NSString*, id> *)options {
-    if (wechatInstance != nil) {
-        return [WXApi handleOpenURL:url delegate:wechatInstance];
+    if (WECHAT_INSTANCE != nil) {
+        return [WXApi handleOpenURL:url delegate:WECHAT_INSTANCE];
     }
     return NO;
 }
 
 + (BOOL)handleOpenUniversalLink:(NSUserActivity *)userActivity {
-    if (wechatInstance != nil) {
-        return [WXApi handleOpenUniversalLink:userActivity delegate:wechatInstance];
+    if (WECHAT_INSTANCE != nil) {
+        return [WXApi handleOpenUniversalLink:userActivity delegate:WECHAT_INSTANCE];
     }
     return NO;
 }
@@ -37,18 +37,22 @@ options:(NSDictionary<NSString*, id> *)options {
     return YES;
 }
 
+- (dispatch_queue_t)methodQueue {
+    return dispatch_queue_create("com.github.reactnativehero.wechat", DISPATCH_QUEUE_SERIAL);
+}
+
 - (instancetype)init {
     if (self = [super init]) {
-        if (wechatInstance) {
-            wechatInstance = nil;
+        if (WECHAT_INSTANCE) {
+            WECHAT_INSTANCE = nil;
         }
-        wechatInstance = self;
+        WECHAT_INSTANCE = self;
     }
     return self;
 }
 
 - (void)dealloc {
-    wechatInstance = nil;
+    WECHAT_INSTANCE = nil;
 }
 
 - (NSArray<NSString *> *)supportedEvents {
@@ -249,7 +253,7 @@ RCT_EXPORT_METHOD(shareImage:(NSDictionary*)options
 
     NSString *url = [RCTConvert NSString:options[@"imageUrl"]];
 
-    wechatLoadImage(url, sendShareReq);
+    WECHAT_LOAD_IMAGE(url, sendShareReq);
 
 }
 
@@ -293,7 +297,7 @@ RCT_EXPORT_METHOD(shareAudio:(NSDictionary*)options
 
     NSString *url = [RCTConvert NSString:options[@"thumbnailUrl"]];
 
-    wechatLoadImage(url, sendShareReq);
+    WECHAT_LOAD_IMAGE(url, sendShareReq);
 
 }
 
@@ -335,7 +339,7 @@ RCT_EXPORT_METHOD(shareVideo:(NSDictionary*)options
 
     NSString *url = [RCTConvert NSString:options[@"thumbnailUrl"]];
 
-    wechatLoadImage(url, sendShareReq);
+    WECHAT_LOAD_IMAGE(url, sendShareReq);
 
 }
 
@@ -376,7 +380,7 @@ RCT_EXPORT_METHOD(sharePage:(NSDictionary*)options
 
     NSString *url = [RCTConvert NSString:options[@"thumbnailUrl"]];
 
-    wechatLoadImage(url, sendShareReq);
+    WECHAT_LOAD_IMAGE(url, sendShareReq);
 
 }
 
@@ -432,7 +436,7 @@ RCT_EXPORT_METHOD(shareMiniProgram:(NSDictionary*)options
 
     NSString *url = [RCTConvert NSString:options[@"thumbnailUrl"]];
 
-    wechatLoadImage(url, sendShareReq);
+    WECHAT_LOAD_IMAGE(url, sendShareReq);
 
 }
 
