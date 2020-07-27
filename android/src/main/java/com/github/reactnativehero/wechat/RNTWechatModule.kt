@@ -37,7 +37,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         private const val ERROR_CODE_IMAGE_NOT_FOUND = "1"
         private const val ERROR_CODE_IMAGE_RECYCLED = "2"
 
-        fun init(app: Application, appId: String, loadImage: (String, (Bitmap?) -> Unit) -> Unit) {
+        @JvmStatic fun init(app: Application, appId: String, loadImage: (String, (Bitmap?) -> Unit) -> Unit) {
 
             wechatLoadImage = loadImage
 
