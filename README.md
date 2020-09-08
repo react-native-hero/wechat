@@ -184,6 +184,8 @@ import {
   SCENE,
   MP_TYPE,
   sendAuthRequest,
+  open,
+  openMiniProgram,
   pay,
   shareText,
   shareImage,
@@ -202,6 +204,20 @@ sendAuthRequest({
 })
 .catch(() => {
   // 登录失败
+})
+
+// 打开微信
+open()
+
+// 打开微信小程序
+openMiniProgram({
+  // 小程序的 userName
+  // 获取方式：登录小程序管理后台-设置-基本设置-帐号信息
+  mpName: '',
+  // 小程序的页面路径
+  mpPath: '',
+  // 小程序的类型
+  mpType: MP_TYPE.PROD,
 })
 
 // 微信支付（一般透传后端传来的参数，不用管它是什么意思）

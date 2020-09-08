@@ -440,4 +440,26 @@ RCT_EXPORT_METHOD(shareMiniProgram:(NSDictionary*)options
 
 }
 
+RCT_EXPORT_METHOD(openMiniProgram:(NSDictionary*)options
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+
+    WXLaunchMiniProgramReq *req = [WXLaunchMiniProgramReq object];
+    
+    // 拉起的小程序的 username
+    req.userName = [RCTConvert NSString:options[@"mpName"]];
+    // 拉起小程序页面的可带参路径，不填默认拉起小程序首页，
+    // 对于小游戏，可以只传入 query 部分，来实现传参效果，如：传入 "?foo=bar"
+    req.path = [RCTConvert NSString:options[@"mpPath"]];
+    // 0-正式版 1-开发版 2-体验版
+    req.miniProgramType = [RCTConvert int:options[@"mpType"]];
+
+    [WXApi sendReq:req completion:^(BOOL success) {
+        resolve(@{
+            @"success": @(success)
+        });
+    }];
+    
+}
+
 @end

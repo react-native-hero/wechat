@@ -19,6 +19,7 @@ import com.tencent.mm.opensdk.modelpay.PayResp
 import com.tencent.mm.opensdk.openapi.IWXAPI
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler
 import com.tencent.mm.opensdk.openapi.WXAPIFactory
+import com.tencent.mm.opensdk.modelbiz.WXLaunchMiniProgram
 import java.io.ByteArrayOutputStream
 import java.util.*
 
@@ -425,6 +426,21 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         wechatLoadImage?.invoke(url) {
             sendShareReq(it)
         }
+
+    }
+
+    @ReactMethod
+    fun openMiniProgram(options: ReadableMap, promise: Promise) {
+
+        val req: WXLaunchMiniProgram.Req = WXLaunchMiniProgram.Req()
+        req.userName = options.getString("mpName")
+        req.path = options.getString("mpPath")
+        req.miniprogramType = options.getInt("mpType")
+
+        val map = Arguments.createMap()
+        map.putBoolean("success", wechatApi.sendReq(req))
+
+        promise.resolve(map)
 
     }
 

@@ -120,6 +120,13 @@ export function open() {
 }
 
 /**
+ * 打开微信小程序
+ */
+export function openMiniProgram(options) {
+  return RNTWechat.openMiniProgram(options)
+}
+
+/**
  * 微信支付
  */
 export function pay(options) {
