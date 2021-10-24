@@ -508,8 +508,22 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
 
     private fun bitmap2ByteArray(bitmap: Bitmap): ByteArray {
 
-        val output = ByteArrayOutputStream()
-        bitmap.compress(CompressFormat.PNG, 100, output)
+        var output: ByteArrayOutputStream
+        var quality = 100
+
+        do {
+            output = ByteArrayOutputStream()
+            bitmap.compress(CompressFormat.PNG, quality, output)
+            // 微信限制了图片必须小于 32KB
+            if (output.size() < 32768 || quality <= 0) {
+                break
+            }
+            else {
+                quality -= 10
+            }
+        }
+        while (true)
+
         bitmap.recycle()
 
         val result: ByteArray = output.toByteArray()
