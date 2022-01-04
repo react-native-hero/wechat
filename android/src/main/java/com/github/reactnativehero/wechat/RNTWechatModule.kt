@@ -13,6 +13,7 @@ import com.tencent.mm.opensdk.constants.Build
 import com.tencent.mm.opensdk.constants.ConstantsAPI
 import com.tencent.mm.opensdk.modelbase.BaseReq
 import com.tencent.mm.opensdk.modelbase.BaseResp
+import com.tencent.mm.opensdk.modelbiz.OpenWebview
 import com.tencent.mm.opensdk.modelmsg.*
 import com.tencent.mm.opensdk.modelpay.PayReq
 import com.tencent.mm.opensdk.modelpay.PayResp
@@ -444,6 +445,20 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
 
     }
 
+    @ReactMethod
+    fun openWebview(options: ReadableMap, promise: Promise) {
+
+        val req: OpenWebview.Req = OpenWebview.Req()
+
+        req.url = options.getString("url")
+
+        val map = Arguments.createMap()
+        map.putBoolean("success", wechatApi.sendReq(req))
+
+        promise.resolve(map)
+
+    }
+
     override fun onReq(baseReq: BaseReq?) {
 
     }
@@ -486,8 +501,13 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
                 sendEvent("auth_response", map)
             }
             is SendMessageToWX.Resp -> {
-                // 没啥新属性...
                 sendEvent("message_response", map)
+            }
+            is WXLaunchMiniProgram.Resp -> {
+                sendEvent("open_mini_program_response", map)
+            }
+            is OpenWebview.Resp -> {
+                sendEvent("open_webview_response", map)
             }
             else -> {
 

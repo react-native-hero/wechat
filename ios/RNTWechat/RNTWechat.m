@@ -132,6 +132,18 @@ options:(NSDictionary<NSString*, id> *)options {
         [self sendEventWithName:@"message_response" body:body];
 
     }
+    // 打开小程序
+    else if ([resp isKindOfClass:[WXLaunchMiniProgramResp class]]) {
+
+        [self sendEventWithName:@"open_mini_program_response" body:body];
+
+    }
+    // 打开 webview
+    else if ([resp isKindOfClass:[OpenWebviewResp class]]) {
+
+        [self sendEventWithName:@"open_webview_response" body:body];
+
+    }
     
 }
 
@@ -454,6 +466,23 @@ RCT_EXPORT_METHOD(openMiniProgram:(NSDictionary*)options
     // 0-正式版 1-开发版 2-体验版
     req.miniProgramType = [RCTConvert int:options[@"mpType"]];
 
+    [WXApi sendReq:req completion:^(BOOL success) {
+        resolve(@{
+            @"success": @(success)
+        });
+    }];
+    
+}
+
+
+RCT_EXPORT_METHOD(openWebview:(NSDictionary*)options
+                  resolve:(RCTPromiseResolveBlock)resolve
+                  reject:(RCTPromiseRejectBlock)reject) {
+
+    OpenWebviewReq *req = [OpenWebviewReq new];
+    
+    req.url = [RCTConvert NSString:options[@"url"]];
+    
     [WXApi sendReq:req completion:^(BOOL success) {
         resolve(@{
             @"success": @(success)

@@ -11,6 +11,10 @@ let resolvePay
 let rejectPay
 let resolveMessage
 let rejectMessage
+let resolveOpenMiniProgram
+let rejectOpenMiniProgram
+let resolveWebview
+let rejectWebview
 
 eventEmitter.addListener('auth_response', function (data) {
   if (data.code === 0) {
@@ -48,6 +52,32 @@ eventEmitter.addListener('message_response', function (data) {
   else if (rejectMessage) {
     rejectMessage(data)
     resolveMessage = rejectMessage = undefined
+  }
+})
+
+eventEmitter.addListener('open_mini_program_response', function (data) {
+  if (data.code === 0) {
+    if (resolveOpenMiniProgram) {
+      resolveOpenMiniProgram(data)
+      resolveOpenMiniProgram = rejectOpenMiniProgram = undefined
+    }
+  }
+  else if (rejectOpenMiniProgram) {
+    rejectOpenMiniProgram(data)
+    resolveOpenMiniProgram = rejectOpenMiniProgram = undefined
+  }
+})
+
+eventEmitter.addListener('open_webview_response', function (data) {
+  if (data.code === 0) {
+    if (resolveWebview) {
+      resolveWebview(data)
+      resolveWebview = rejectWebview = undefined
+    }
+  }
+  else if (rejectWebview) {
+    rejectWebview(data)
+    resolveWebview = rejectWebview = undefined
   }
 })
 
@@ -123,7 +153,38 @@ export function open() {
  * 打开微信小程序
  */
 export function openMiniProgram(options) {
-  return RNTWechat.openMiniProgram(options)
+  return new Promise((resolve, reject) => {
+    RNTWechat
+      .openMiniProgram(options)
+      .then(data => {
+        if (data.success) {
+          resolveOpenMiniProgram = resolve
+          rejectOpenMiniProgram = reject
+        }
+        else {
+          reject(data)
+        }
+      })
+  })
+}
+
+/**
+ * 打开微信网页
+ */
+ export function openWebview(options) {
+  return new Promise((resolve, reject) => {
+    RNTWechat
+      .openWebview(options)
+      .then(data => {
+        if (data.success) {
+          resolveWebview = resolve
+          rejectWebview = reject
+        }
+        else {
+          reject(data)
+        }
+      })
+  })
 }
 
 /**
@@ -217,3 +278,4 @@ export function shareMiniProgram(options) {
     RNTWechat.shareMiniProgram(options)
   )
 }
+

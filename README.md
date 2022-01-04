@@ -220,6 +220,11 @@ openMiniProgram({
   mpType: MP_TYPE.PROD,
 })
 
+// 打开微信网页
+openWebview({
+  url: 'https://baidu.com',
+})
+
 // 微信支付（一般透传后端传来的参数，不用管它是什么意思）
 pay({
   partnerId: 'partnerId',
