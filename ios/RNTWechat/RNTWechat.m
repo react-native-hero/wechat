@@ -60,6 +60,8 @@ options:(NSDictionary<NSString*, id> *)options {
       @"pay_response",
       @"auth_response",
       @"message_response",
+      @"open_mini_program_response",
+      @"open_webview_response",
   ];
 }
 
