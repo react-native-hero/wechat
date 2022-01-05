@@ -3,7 +3,7 @@
 
 @interface RNTWechat : RCTEventEmitter <WXApiDelegate>
 
-+ (void)init:(NSString *)appId universalLink:(NSString *)universalLink loadImage:(void (^)(NSString*, void (^)(UIImage*)))loadImage;
++ (void)init:(void (^)(NSString*, void (^)(UIImage*)))loadImage;
 
 + (BOOL)handleOpenURL:(UIApplication *)application openURL:(NSURL *)url options:(NSDictionary<NSString*, id> *)options;
 

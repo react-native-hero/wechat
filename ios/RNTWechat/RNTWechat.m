@@ -13,9 +13,8 @@ static NSString *ERROR_CODE_IMAGE_NOT_FOUND = @"1";
 
 RCT_EXPORT_MODULE(RNTWechat);
 
-+ (void)init:(NSString *)appId universalLink:(NSString *)universalLink loadImage:(void (^)(NSString*, void (^)(UIImage*)))loadImage {
++ (void)init:(void (^)(NSString*, void (^)(UIImage*)))loadImage {
     WECHAT_LOAD_IMAGE = loadImage;
-    [WXApi registerApp:appId universalLink:universalLink];
 }
 
 + (BOOL)handleOpenURL:(UIApplication *)application openURL:(NSURL *)url
@@ -146,6 +145,15 @@ options:(NSDictionary<NSString*, id> *)options {
         [self sendEventWithName:@"open_webview_response" body:body];
 
     }
+    
+}
+
+RCT_EXPORT_METHOD(init:(NSDictionary*)options) {
+    
+    NSString *appId = [RCTConvert NSString:options[@"appId"]];
+    NSString *universalLink = [RCTConvert NSString:options[@"universalLink"]];
+    
+    [WXApi registerApp:appId universalLink:universalLink];
     
 }
 

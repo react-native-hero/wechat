@@ -129,6 +129,13 @@ export const MP_TYPE = {
 }
 
 /**
+ * 初始化
+ */
+export function init(options) {
+  return RNTWechat.init(options)
+}
+
+/**
  * 检查微信是否已被用户安装
  */
 export function isInstalled() {

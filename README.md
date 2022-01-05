@@ -94,8 +94,7 @@ $ react-native link @react-native-hero/wechat
 - (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
 {
   ...
-  // 初始化，注意 universalLink 包含 https://
-  [RNTWechat init:@"" universalLink:@"" loadImage:^(NSString *url, void (^ onComplete)(UIImage *)) {
+  [RNTWechat init:^(NSString *url, void (^ onComplete)(UIImage *)) {
 
     // 加载网络图片
     // 加载成功后调用 onComplete
@@ -166,7 +165,7 @@ class NotifyActivity : Activity() {
 ```kotlin
 override fun onCreate() {
 
-   RNTWechatModule.init(this, "appId") { url, onComplete ->
+   RNTWechatModule.init { url, onComplete ->
 
       // 加载网络图片
       // 加载成功后调用 onComplete
@@ -183,6 +182,7 @@ import {
   SCOPE,
   SCENE,
   MP_TYPE,
+  init,
   sendAuthRequest,
   open,
   openMiniProgram,
@@ -194,6 +194,12 @@ import {
   sharePage,
   shareMiniProgram,
 } from '@react-native-hero/wechat'
+
+// 必须先调用初始化方法，才能调用后面的方法
+init({
+  appId: '微信 app id',
+  universalLink: 'ios 的 universalLink，注意包含 https://'
+})
 
 // 微信登录
 sendAuthRequest({

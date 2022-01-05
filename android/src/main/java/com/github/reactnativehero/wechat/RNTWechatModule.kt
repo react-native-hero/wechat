@@ -1,6 +1,5 @@
 package com.github.reactnativehero.wechat
 
-import android.app.Application
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
@@ -28,10 +27,6 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
 
     companion object {
 
-        private lateinit var wechatApi: IWXAPI
-
-        private var wechatAppId = ""
-
         private var wechatModule: RNTWechatModule? = null
 
         private var wechatLoadImage: ((String, (Bitmap?) -> Unit) -> Unit)? = null
@@ -39,33 +34,18 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         private const val ERROR_CODE_IMAGE_NOT_FOUND = "1"
         private const val ERROR_CODE_IMAGE_RECYCLED = "2"
 
-        @JvmStatic fun init(app: Application, appId: String, loadImage: (String, (Bitmap?) -> Unit) -> Unit) {
-
+        @JvmStatic fun init(loadImage: (String, (Bitmap?) -> Unit) -> Unit) {
             wechatLoadImage = loadImage
-
-            // 通过 WXAPIFactory 工厂，获取 IWXAPI 的实例
-            wechatApi = WXAPIFactory.createWXAPI(app, appId, true)
-
-            // 将应用的 appId 注册到微信
-            wechatAppId = appId
-            wechatApi.registerApp(appId)
-
-            // 建议动态监听微信启动广播进行注册到微信
-            app.registerReceiver(object : BroadcastReceiver() {
-                override fun onReceive(context: Context?, intent: Intent?) {
-                    wechatApi.registerApp(appId)
-                }
-            }, IntentFilter(ConstantsAPI.ACTION_REFRESH_WXAPP))
-
         }
 
         fun handleIntent(intent: Intent) {
-            wechatModule?.let {
-                wechatApi.handleIntent(intent, it)
-            }
+            wechatModule?.handleIntent(intent)
         }
 
     }
+
+    private var wechatAppId: String? = ""
+    private lateinit var wechatApi: IWXAPI
 
     override fun getName(): String {
         return "RNTWechat"
@@ -90,6 +70,32 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
     override fun initialize() {
         super.initialize()
         wechatModule = this
+    }
+
+    fun handleIntent(intent: Intent) {
+        wechatApi.handleIntent(intent, this)
+    }
+
+    @ReactMethod
+    fun init(options: ReadableMap) {
+
+        val context = reactApplicationContext
+
+        wechatAppId = options.getString("appId")
+
+        // 通过 WXAPIFactory 工厂，获取 IWXAPI 的实例
+        wechatApi = WXAPIFactory.createWXAPI(context, wechatAppId, true)
+
+        // 将应用的 appId 注册到微信
+        wechatApi.registerApp(wechatAppId)
+
+        // 建议动态监听微信启动广播进行注册到微信
+        context.registerReceiver(object : BroadcastReceiver() {
+            override fun onReceive(context: Context?, intent: Intent?) {
+                wechatApi.registerApp(wechatAppId)
+            }
+        }, IntentFilter(ConstantsAPI.ACTION_REFRESH_WXAPP))
+
     }
 
     @ReactMethod
