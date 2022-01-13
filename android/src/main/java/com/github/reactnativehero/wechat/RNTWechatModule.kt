@@ -6,6 +6,8 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
+import android.graphics.BitmapFactory
+import android.util.Base64
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.tencent.mm.opensdk.constants.Build
@@ -206,9 +208,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
             }
 
             val obj = WXImageObject(bitmap)
-
             val msg = WXMediaMessage(obj)
-            // 分享图片不需要缩略图，最重要的是分享的图片通常比较大，会超过 32KB 限制
 
             val req = SendMessageToWX.Req()
             req.transaction = createUUID()
@@ -227,10 +227,19 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
 
         }
 
-        val url = options.getString("imageUrl")!!
+        val url = options.getString("imageUrl")
+        val base64 = options.getString("imageBase64")
 
-        wechatLoadImage?.invoke(url) {
-            sendShareReq(it)
+        url?.let {
+            wechatLoadImage?.invoke(it) { image ->
+                sendShareReq(image)
+            }
+        }
+
+        base64?.let {
+            val bytes = Base64.decode(it, Base64.DEFAULT)
+            val bitmap = BitmapFactory.decodeByteArray(bytes, 0, bytes.size)
+            sendShareReq(bitmap)
         }
 
     }

@@ -245,6 +245,10 @@ export function shareText(options) {
  * 分享图片
  */
 export function shareImage(options) {
+  // 底层不支持带前缀的 base64
+  if (options.imageBase64) {
+    options.imageBase64 = options.imageBase64.replace(/^data:image\/[^;]+;base64,/, '')
+  }
   return shareMessage(
     RNTWechat.shareImage(options)
   )

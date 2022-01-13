@@ -274,6 +274,18 @@ RCT_EXPORT_METHOD(shareImage:(NSDictionary*)options
     };
 
     NSString *url = [RCTConvert NSString:options[@"imageUrl"]];
+    NSString *base64 = [RCTConvert NSString:options[@"imageBase64"]];
+    
+    if (base64.length > 0) {
+        NSData *imageData = [[NSData alloc]
+                    initWithBase64EncodedString:base64
+                    options:NSDataBase64DecodingIgnoreUnknownCharacters];
+        
+        UIImage *image = [UIImage imageWithData:imageData];
+        sendShareReq(image);
+        
+        return;
+    }
 
     WECHAT_LOAD_IMAGE(url, sendShareReq);
 

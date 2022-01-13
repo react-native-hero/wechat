@@ -267,6 +267,13 @@ shareImage({
   scene: SCENE.SESSION,
 })
 
+// 分享 base64 图片
+// 前面的 data:image/png;base64, 可要可不要，随便外面怎么传
+shareImage({
+  imageBase64: 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA....',
+  scene: SCENE.SESSION,
+})
+
 // 分享音频
 shareAudio({
   // 音频网页地址
