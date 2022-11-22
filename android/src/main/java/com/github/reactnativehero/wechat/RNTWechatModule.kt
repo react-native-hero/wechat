@@ -7,6 +7,8 @@ import android.content.IntentFilter
 import android.graphics.Bitmap
 import android.graphics.Bitmap.CompressFormat
 import android.graphics.BitmapFactory
+import android.graphics.Canvas
+import android.graphics.Rect
 import android.util.Base64
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
@@ -15,13 +17,13 @@ import com.tencent.mm.opensdk.constants.ConstantsAPI
 import com.tencent.mm.opensdk.modelbase.BaseReq
 import com.tencent.mm.opensdk.modelbase.BaseResp
 import com.tencent.mm.opensdk.modelbiz.OpenWebview
+import com.tencent.mm.opensdk.modelbiz.WXLaunchMiniProgram
 import com.tencent.mm.opensdk.modelmsg.*
 import com.tencent.mm.opensdk.modelpay.PayReq
 import com.tencent.mm.opensdk.modelpay.PayResp
 import com.tencent.mm.opensdk.openapi.IWXAPI
 import com.tencent.mm.opensdk.openapi.IWXAPIEventHandler
 import com.tencent.mm.opensdk.openapi.WXAPIFactory
-import com.tencent.mm.opensdk.modelbiz.WXLaunchMiniProgram
 import java.io.ByteArrayOutputStream
 import java.util.*
 
@@ -417,7 +419,8 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
             val msg = WXMediaMessage(obj)
             msg.title = options.getString("title")
             msg.description = options.getString("description")
-            msg.thumbData = bitmap2ByteArray(bitmap)
+            // 小程序限制图片为 128KB
+            msg.thumbData = bitmap2ByteArray(bitmap, 131072)
 
             val req = SendMessageToWX.Req()
             req.transaction = createUUID()
@@ -541,25 +544,46 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         return UUID.randomUUID().toString()
     }
 
-    private fun bitmap2ByteArray(bitmap: Bitmap): ByteArray {
+    // 默认限制图片为 32KB
+    private fun bitmap2ByteArray(bitmap: Bitmap, limit: Int = 32768): ByteArray {
 
         var output: ByteArrayOutputStream
-        var quality = 100
+        var width = bitmap.width
+        var height = bitmap.height
+
+        val max = width.coerceAtLeast(height)
+        val offset = if (max > 5000) {
+            500
+        } else if (max > 2000) {
+            200
+        } else if (max > 1000) {
+            50
+        } else if (max > 500) {
+            20
+        } else {
+            10
+        }
 
         do {
+            val localBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+            val localCanvas = Canvas(localBitmap)
+
+            localCanvas.drawBitmap(bitmap, Rect(0, 0, bitmap.width, bitmap.height), Rect(0, 0, width, height), null)
+
             output = ByteArrayOutputStream()
-            bitmap.compress(CompressFormat.PNG, quality, output)
-            // 微信限制了图片必须小于 32KB
-            if (output.size() < 32768 || quality <= 0) {
+            localBitmap.compress(CompressFormat.JPEG, 100, output)
+            localBitmap.recycle()
+
+            // 微信限制了图片尺寸
+            if (output.size() < limit) {
                 break
             }
             else {
-                quality -= 10
+                width -= offset
+                height -= offset
             }
         }
-        while (true)
-
-        bitmap.recycle()
+        while (width > 0 && height > 0)
 
         val result: ByteArray = output.toByteArray()
         try {
