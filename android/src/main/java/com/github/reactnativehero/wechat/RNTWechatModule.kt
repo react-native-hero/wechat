@@ -5,7 +5,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.graphics.Bitmap
-import android.graphics.Bitmap.CompressFormat
 import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Rect
@@ -547,53 +546,73 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
     // 默认限制图片为 32KB
     private fun bitmap2ByteArray(bitmap: Bitmap, limit: Int = 32768): ByteArray {
 
-        var output: ByteArrayOutputStream
-        var width = bitmap.width
-        var height = bitmap.height
+        var output = ByteArray(0)
+        var outputWidth = bitmap.width
+        var outputHeight = bitmap.height
 
-        val max = width.coerceAtLeast(height)
-        val offset = if (max > 5000) {
-            500
-        } else if (max > 2000) {
-            200
-        } else if (max > 1000) {
-            50
-        } else if (max > 500) {
-            20
-        } else {
-            10
-        }
+        val ratio = outputWidth.toFloat() / outputHeight.toFloat()
+        val decreaseWidth = outputWidth < outputHeight
 
-        do {
-            val localBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.RGB_565)
+        while (outputWidth > 0 && outputHeight > 0) {
+            val localBitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.RGB_565)
             val localCanvas = Canvas(localBitmap)
+            val byteArrayOutputStream = ByteArrayOutputStream()
 
-            localCanvas.drawBitmap(bitmap, Rect(0, 0, bitmap.width, bitmap.height), Rect(0, 0, width, height), null)
-
-            output = ByteArrayOutputStream()
-            localBitmap.compress(CompressFormat.JPEG, 100, output)
+            localCanvas.drawBitmap(bitmap, Rect(0, 0, bitmap.width, bitmap.height), Rect(0, 0, outputWidth, outputHeight), null)
+            localBitmap.compress(Bitmap.CompressFormat.JPEG, 70, byteArrayOutputStream)
             localBitmap.recycle()
 
+            val outputSize = byteArrayOutputStream.size()
+
             // 微信限制了图片尺寸
-            if (output.size() < limit) {
+            if (outputSize < limit) {
+                if (outputSize > 0) {
+                    output = byteArrayOutputStream.toByteArray()
+                }
+                byteArrayOutputStream.close()
                 break
             }
             else {
-                width -= offset
-                height -= offset
+                byteArrayOutputStream.close()
+                if (decreaseWidth) {
+                    outputWidth -= getDecreaseOffset(outputWidth)
+                    outputHeight = (outputWidth.toFloat() / ratio).toInt()
+                }
+                else {
+                    outputHeight -= getDecreaseOffset(outputHeight)
+                    outputWidth = (outputHeight.toFloat() * ratio).toInt()
+                }
             }
         }
-        while (width > 0 && height > 0)
 
-        val result: ByteArray = output.toByteArray()
-        try {
-            output.close()
-        } catch (e: Exception) {
-            e.printStackTrace()
+        return output
+
+    }
+
+    private fun getDecreaseOffset(size: Int): Int {
+        if (size > 4000) {
+            return 2000
+        }
+        else if (size > 3000) {
+            return 1000
+        }
+        else if (size > 2000) {
+            return 500
+        }
+        else if (size > 1500) {
+            return 300
+        }
+        else if (size > 1000) {
+            return 200
+        }
+        else if (size > 500) {
+            return 50
+        }
+        else if (size > 300) {
+            return 30
         }
 
-        return result
-
+        return 10
     }
 
 }
