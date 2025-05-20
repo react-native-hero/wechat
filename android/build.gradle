@@ -3,7 +3,7 @@ buildscript {
     def kotlinVersion = rootProject.ext.has('kotlinVersion') ? rootProject.ext.get('kotlinVersion') : '1.3.40'
 
     repositories {
-        jcenter()
+        mavenCentral()
         google()
     }
 

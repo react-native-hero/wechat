@@ -9,6 +9,8 @@ import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Rect
 import android.util.Base64
+import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import com.facebook.react.bridge.*
 import com.facebook.react.modules.core.DeviceEventManagerModule
 import com.tencent.mm.opensdk.constants.Build
@@ -65,8 +67,8 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
 
     }
 
-    override fun onCatalystInstanceDestroy() {
-        super.onCatalystInstanceDestroy()
+    override fun invalidate() {
+        super.invalidate()
         wechatModule = null
     }
 
@@ -93,11 +95,11 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         wechatApi.registerApp(wechatAppId)
 
         // 建议动态监听微信启动广播进行注册到微信
-        context.registerReceiver(object : BroadcastReceiver() {
+        ContextCompat.registerReceiver(context, object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 wechatApi.registerApp(wechatAppId)
             }
-        }, IntentFilter(ConstantsAPI.ACTION_REFRESH_WXAPP))
+        }, IntentFilter(ConstantsAPI.ACTION_REFRESH_WXAPP), ContextCompat.RECEIVER_EXPORTED)
 
     }
 
@@ -554,7 +556,7 @@ class RNTWechatModule(private val reactContext: ReactApplicationContext) : React
         val decreaseWidth = outputWidth < outputHeight
 
         while (outputWidth > 0 && outputHeight > 0) {
-            val localBitmap = Bitmap.createBitmap(outputWidth, outputHeight, Bitmap.Config.RGB_565)
+            val localBitmap = createBitmap(outputWidth, outputHeight, Bitmap.Config.RGB_565)
             val localCanvas = Canvas(localBitmap)
             val byteArrayOutputStream = ByteArrayOutputStream()
 
